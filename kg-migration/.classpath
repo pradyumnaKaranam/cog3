@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/apache-commons-lang.jar"/>
+	<classpathentry kind="lib" path="lib/astyanax-cassandra-1.56.48.jar"/>
+	<classpathentry kind="lib" path="lib/astyanax-core-1.56.48.jar"/>
+	<classpathentry kind="lib" path="lib/astyanax-thrift-1.56.48.jar"/>
+	<classpathentry kind="lib" path="lib/blueprints-core-2.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/cassandra-all-2.0.8.jar"/>
+	<classpathentry kind="lib" path="lib/cassandra-thrift-2.0.8.jar"/>
+	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-configuration-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/db2jcc.jar"/>
+	<classpathentry kind="lib" path="lib/elasticsearch-1.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/gremlin-java-2.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/guava-15.0.jar"/>
+	<classpathentry kind="lib" path="lib/high-scale-lib-1.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/hppc-0.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-asl-1.9.2.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-mapper-asl-1.9.2.jar"/>
+	<classpathentry kind="lib" path="lib/javassist-3.18.0-GA.jar"/>
+	<classpathentry kind="lib" path="lib/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/kryo-2.22.jar"/>
+	<classpathentry kind="lib" path="lib/libthrift-0.9.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analyzers-common-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analyzers-kuromoji-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analyzers-phonetic-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-codecs-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-core-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-expressions-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-grouping-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-highlighter-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-join-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-memory-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-misc-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-queries-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-queryparser-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-sandbox-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-spatial-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-suggest-4.8.1.jar"/>
+	<classpathentry kind="lib" path="lib/org-apache-commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/org.apache.commons.io.jar"/>
+	<classpathentry kind="lib" path="lib/pipes-2.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/reflections-0.9.9-RC1.jar"/>
+	<classpathentry kind="lib" path="lib/simplenlg.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-simple-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/snakeyaml-1.11.jar"/>
+	<classpathentry kind="lib" path="lib/spatial4j-0.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/stanford-corenlp-3.5.1-models.jar"/>
+	<classpathentry kind="lib" path="lib/stanford-corenlp-3.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/super-csv-2.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/titan-cassandra-0.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/titan-core-0.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/titan-es-0.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/titan-lucene-0.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/metrics-core-3.0.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

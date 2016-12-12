@@ -1,0 +1,27 @@
+<dataConfig>
+    <dataSource type="JdbcDataSource" driver="com.ibm.db2.jcc.DB2Driver" url="jdbc:db2://localhost:60006/cogams" user="cogams" password="COGAMS" />
+    <document name="content">
+        <entity name="unanswered" pk="id" transformer="RegexTransformer" query="select a.* from (SELECT q.id as id,q.Question as question, q.error_code as error_code, q.curatedlang as langsuupport, 'UNANSWERED' as qstate, q.project_id as project_id,  (select xmlserialize(xmlagg(xmltext(concat(',',qa.state))) as varchar(1000)) as state  from cogams.question_answer qa  where qa.question_id = q.id group by qa.question_id) as stat, (select substr(xmlserialize(xmlagg(xmltext(concat(',',t.name))) as varchar(1000)),2) from cogams.tags t where t.id in(select tag_id from cogams.curated_tags where question_id=q.id )) as alltags from cogams.questions q) a where stat is NULL or stat NOT like '%APPROVED%' and stat != 'ARCHIVED'" deltaImportQuery="select a.* from (SELECT q.id as id,q.Question as question, q.error_code as error_code, CURATEDLANG as langsuupport, 'UNANSWERED' as qstate, q.project_id as project_id, (select xmlserialize(xmlagg(xmltext(concat(',',qa.state))) as varchar(1000)) as state  from cogams.question_answer qa  where qa.question_id = q.id group by qa.question_id) as stat, (select substr(xmlserialize(xmlagg(xmltext(concat(',',t.name))) as varchar(1000)),2) from cogams.tags t where t.id in(select tag_id from cogams.curated_tags where question_id=q.id )) as alltags from cogams.questions q) a where stat is null or stat NOT like '%APPROVED%' and stat != 'ARCHIVED' and id='${dih.delta.id}'"
+            deltaQuery="select id from errorcode where last_modified > '${dih.last_index_time}'">
+            <field column="ID" name="QUESTION_ID" />
+            <field column="ERROR_CODE" name="ERROR_CODE" />
+            <field column="LANGSUPPORT" name="ISO_CODE" />
+            <field column="PROJECT_ID" name="PROJECT_ID" />
+            <field column="QUESTION" name="QUESTION_TEXT_en" />
+            <field column="ALLTAGS" splitBy="," name="TAGS" />
+	    <field column="QSTATE" name="STATE" />
+        </entity>
+
+        <entity name="approved" pk="id" transformer="RegexTransformer" query="select a.* from (SELECT q.id as id,q.Question as question, q.error_code as error_code, q.curatedlang as langsuupport, 'APPROVED' as qstate, q.project_id as project_id,  (select xmlserialize(xmlagg(xmltext(concat(',',qa.state))) as varchar(1000)) as state  from cogams.question_answer qa  where qa.question_id = q.id group by qa.question_id) as stat, (select substr(xmlserialize(xmlagg(xmltext(concat(',',t.name))) as varchar(1000)),2) from cogams.tags t where t.id in(select tag_id from cogams.curated_tags where question_id=q.id )) as alltags from cogams.questions q) a where stat like '%APPROVED%'" deltaImportQuery="select a.* from (SELECT q.id as id,q.Question as question, q.error_code as error_code, CURATEDLANG as langsuupport, 'APPROVED' as qstate, q.project_id as project_id, (select xmlserialize(xmlagg(xmltext(concat(',',qa.state))) as varchar(1000)) as state  from cogams.question_answer qa  where qa.question_id = q.id group by qa.question_id) as stat, (select substr(xmlserialize(xmlagg(xmltext(concat(',',t.name))) as varchar(1000)),2) from cogams.tags t where t.id in(select tag_id from cogams.curated_tags where question_id=q.id )) as alltags from cogams.questions q) a where stat like '%APPROVED%' and id='${dih.delta.id}'"
+            deltaQuery="select id from errorcode where last_modified > '${dih.last_index_time}'">
+            <field column="ID" name="QUESTION_ID" />
+            <field column="ERROR_CODE" name="ERROR_CODE" />
+            <field column="LANGSUPPORT" name="ISO_CODE" />
+            <field column="PROJECT_ID" name="PROJECT_ID" />
+            <field column="QUESTION" name="QUESTION_TEXT_en" />
+            <field column="ALLTAGS" splitBy="," name="TAGS" />
+            <field column="QSTATE" name="STATE" />
+        </entity>
+        
+    </document>
+</dataConfig>

@@ -1,0 +1,14 @@
+<dataConfig>
+    <dataSource type="JdbcDataSource" driver="com.ibm.db2.jcc.DB2Driver" url="jdbc:db2://localhost:60006/cogams" user="cogams" password="COGAMS" />
+    <document name="content">
+        <entity name="errorcode" pk="id" query="select id, error_code, error_msg, langsupport, project_id from errorcode" deltaImportQuery="select id, error_code, error_msg, langsupport, project_id from errorcode where id='${dih.delta.id}'"
+            deltaQuery="select id from errorcode where last_modified > '${dih.last_index_time}'">
+            <field column="ID" name="ERROR_ID" />
+            <field column="ERROR_CODE" name="ERROR_CODE" />
+            <field column="ERROR_MSG" name="ERROR_MESSAGE_en" />
+            <field column="LANGSUPPORT" name="ISO_CODE" />
+            <field column="PROJECT_ID" name="PROJECT_ID" />
+        </entity>
+        
+    </document>
+</dataConfig>

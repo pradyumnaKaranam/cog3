@@ -1,0 +1,1619 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	You under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+<schema name="DocIngestion" version="1.5">
+	<types>
+
+		<fieldType name="string" class="solr.StrField"
+			sortMissingLast="true" />
+		<fieldType name="double" class="solr.TrieDoubleField"
+			precisionStep="0" positionIncrementGap="0" />
+		<fieldType name="long" class="solr.TrieLongField"
+			precisionStep="0" positionIncrementGap="0" />
+
+		<!-- A Trie based date field for faster date range queries and date faceting. -->
+		<fieldType name="tdate" class="solr.TrieDateField"
+			precisionStep="6" positionIncrementGap="0" />
+
+		<field name="text" type="text_general" indexed="true" stored="false"
+			multiValued="true" />
+
+		<!-- Text for English -->
+		<fieldType name="text_en" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_en.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.PorterStemFilterFactory" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_en.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.PorterStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+		<fieldType name="text_nonstop_en" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.PorterStemFilterFactory" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.PorterStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- A general text field that has reasonable, generic cross-language defaults: 
+			it tokenizes with StandardTokenizer, removes stop words from case-insensitive 
+			"stopwords.txt" (empty by default), and down cases. At query time only, it 
+			also applies synonyms. -->
+		<fieldType name="text_general" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer type="index">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- some examples for different languages (generally ordered by ISO code) -->
+
+		<!-- Arabic -->
+		<fieldType name="text_ar" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- for any non-arabic -->
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ar.txt" />
+				<!-- normalizes ﻯ to ﻱ, etc -->
+				<filter class="solr.ArabicNormalizationFilterFactory" />
+				<filter class="solr.ArabicStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Bulgarian -->
+		<fieldType name="text_bg" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_bg.txt" />
+				<filter class="solr.BulgarianStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Catalan -->
+		<fieldType name="text_ca" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_ca.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ca.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Catalan" />
+			</analyzer>
+		</fieldType>
+
+		<!-- CJK bigram (see text_ja for a Japanese configuration using morphological 
+			analysis) -->
+		<fieldType name="text_cjk" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- normalize width before bigram, as e.g. half-width dakuten combine -->
+				<filter class="solr.CJKWidthFilterFactory" />
+				<!-- for any non-CJK -->
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.CJKBigramFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Czech -->
+		<fieldType name="text_cz" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_cz.txt" />
+				<filter class="solr.CzechStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Danish -->
+		<fieldType name="text_da" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_da.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Danish" />
+			</analyzer>
+		</fieldType>
+
+		<!-- German -->
+		<fieldType name="text_de" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_de.txt" format="snowball" />
+				<filter class="solr.GermanNormalizationFilterFactory" />
+				<filter class="solr.GermanLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.GermanMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="German2"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Greek -->
+		<fieldType name="text_el" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- greek specific lowercase for sigma -->
+				<filter class="solr.GreekLowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="false"
+					words="lang/stopwords_el.txt" />
+				<filter class="solr.GreekStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Spanish -->
+		<fieldType name="text_es" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_es.txt" format="snowball" />
+				<filter class="solr.SpanishLightStemFilterFactory" />
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Spanish"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Basque -->
+		<fieldType name="text_eu" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_eu.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Basque" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Persian -->
+		<fieldType name="text_fa" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<!-- for ZWNJ -->
+				<charFilter class="solr.PersianCharFilterFactory" />
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.ArabicNormalizationFilterFactory" />
+				<filter class="solr.PersianNormalizationFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_fa.txt" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Finnish -->
+		<fieldType name="text_fi" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_fi.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Finnish" />
+				<!-- less aggressive: <filter class="solr.FinnishLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- French -->
+		<fieldType name="text_fr" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_fr.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_fr.txt" format="snowball" />
+				<filter class="solr.FrenchLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.FrenchMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="French"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Irish -->
+		<fieldType name="text_ga" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes d', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_ga.txt" />
+				<!-- removes n-, etc. position increments is intentionally false! -->
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/hyphenations_ga.txt" />
+				<filter class="solr.IrishLowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ga.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Irish" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Galician -->
+		<fieldType name="text_gl" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_gl.txt" />
+				<filter class="solr.GalicianStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.GalicianMinimalStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Hindi -->
+		<fieldType name="text_hi" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<!-- normalizes unicode representation -->
+				<filter class="solr.IndicNormalizationFilterFactory" />
+				<!-- normalizes variation in spelling -->
+				<filter class="solr.HindiNormalizationFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_hi.txt" />
+				<filter class="solr.HindiStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Hungarian -->
+		<fieldType name="text_hu" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_hu.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Hungarian" />
+				<!-- less aggressive: <filter class="solr.HungarianLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Armenian -->
+		<fieldType name="text_hy" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_hy.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Armenian" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Indonesian -->
+		<fieldType name="text_id" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_id.txt" />
+				<!-- for a less aggressive approach (only inflectional suffixes), set 
+					stemDerivational to false -->
+				<filter class="solr.IndonesianStemFilterFactory"
+					stemDerivational="true" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Italian -->
+		<fieldType name="text_it" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_it.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_it.txt" format="snowball" />
+				<filter class="solr.ItalianLightStemFilterFactory" />
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Italian"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Japanese using morphological analysis (see text_cjk for a configuration 
+			using bigramming) NOTE: If you want to optimize search for precision, use 
+			default operator AND in your query parser config with <solrQueryParser defaultOperator="AND"/> 
+			further down in this file. Use OR if you would like to optimize for recall 
+			(default). -->
+		<fieldType name="text_ja" class="solr.TextField"
+			positionIncrementGap="100" autoGeneratePhraseQueries="false">
+			<analyzer>
+				<!-- Kuromoji Japanese morphological analyzer/tokenizer (JapaneseTokenizer) 
+					Kuromoji has a search mode (default) that does segmentation useful for search. 
+					A heuristic is used to segment compounds into its parts and the compound 
+					itself is kept as synonym. Valid values for attribute mode are: normal: regular 
+					segmentation search: segmentation useful for search with synonyms compounds 
+					(default) extended: same as search mode, but unigrams unknown words (experimental) 
+					For some applications it might be good to use search mode for indexing and 
+					normal mode for queries to reduce recall and prevent parts of compounds from 
+					being matched and highlighted. Use <analyzer type="index"> and <analyzer 
+					type="query"> for this and mode normal in query. Kuromoji also has a convenient 
+					user dictionary feature that allows overriding the statistical model with 
+					your own entries for segmentation, part-of-speech tags and readings without 
+					a need to specify weights. Notice that user dictionaries have not been subject 
+					to extensive testing. User dictionary attributes are: userDictionary: user 
+					dictionary filename userDictionaryEncoding: user dictionary encoding (default 
+					is UTF-8) See lang/userdict_ja.txt for a sample user dictionary file. Punctuation 
+					characters are discarded by default. Use discardPunctuation="false" to keep 
+					them. See http://wiki.apache.org/solr/JapaneseLanguageSupport for more on 
+					Japanese language support. -->
+				<tokenizer class="solr.JapaneseTokenizerFactory" mode="search" />
+				<!--<tokenizer class="solr.JapaneseTokenizerFactory" mode="search" userDictionary="lang/userdict_ja.txt"/> -->
+				<!-- Reduces inflected verbs and adjectives to their base/dictionary 
+					forms (辞書形) -->
+				<filter class="solr.JapaneseBaseFormFilterFactory" />
+				<!-- Removes tokens with certain part-of-speech tags -->
+				<filter class="solr.JapanesePartOfSpeechStopFilterFactory"
+					tags="lang/stoptags_ja.txt" />
+				<!-- Normalizes full-width romaji to half-width and half-width kana to 
+					full-width (Unicode NFKC subset) -->
+				<filter class="solr.CJKWidthFilterFactory" />
+				<!-- Removes common tokens typically not useful for search, but have 
+					a negative effect on ranking -->
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ja.txt" />
+				<!-- Normalizes common katakana spelling variations by removing any last 
+					long sound character (U+30FC) -->
+				<filter class="solr.JapaneseKatakanaStemFilterFactory"
+					minimumLength="4" />
+				<!-- Lower-cases romaji characters -->
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Latvian -->
+		<fieldType name="text_lv" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_lv.txt" />
+				<filter class="solr.LatvianStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Dutch -->
+		<fieldType name="text_nl" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_nl.txt" format="snowball" />
+				<filter class="solr.StemmerOverrideFilterFactory" dictionary="lang/stemdict_nl.txt"
+					ignoreCase="false" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Dutch" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Norwegian -->
+		<fieldType name="text_no" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_no.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Norwegian" />
+				<!-- less aggressive: <filter class="solr.NorwegianLightStemFilterFactory" 
+					variant="nb"/> -->
+				<!-- singular/plural: <filter class="solr.NorwegianMinimalStemFilterFactory" 
+					variant="nb"/> -->
+				<!-- The "light" and "minimal" stemmers support variants: nb=Bokmål, 
+					nn=Nynorsk, no=Both -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Portuguese -->
+		<fieldType name="text_pt" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_pt.txt" format="snowball" />
+				<filter class="solr.PortugueseLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.PortugueseMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Portuguese"/> -->
+				<!-- most aggressive: <filter class="solr.PortugueseStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Romanian -->
+		<fieldType name="text_ro" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ro.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Romanian" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Russian -->
+		<fieldType name="text_ru" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_ru.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Russian" />
+				<!-- less aggressive: <filter class="solr.RussianLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Swedish -->
+		<fieldType name="text_sv" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_sv.txt" format="snowball" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Swedish" />
+				<!-- less aggressive: <filter class="solr.SwedishLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Thai -->
+		<fieldType name="text_th" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.ThaiWordFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="true"
+					words="lang/stopwords_th.txt" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Turkish -->
+		<fieldType name="text_tr" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.TurkishLowerCaseFilterFactory" />
+				<filter class="solr.StopFilterFactory" ignoreCase="false"
+					words="lang/stopwords_tr.txt" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Turkish" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Arabic -->
+		<fieldType name="text_nonstop_ar" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- for any non-arabic -->
+				<filter class="solr.LowerCaseFilterFactory" />
+				<!-- normalizes ﻯ to ﻱ, etc -->
+				<filter class="solr.ArabicNormalizationFilterFactory" />
+				<filter class="solr.ArabicStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Bulgarian -->
+		<fieldType name="text_nonstop_bg" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.BulgarianStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Catalan -->
+		<fieldType name="text_nonstop_ca" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_ca.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Catalan" />
+			</analyzer>
+		</fieldType>
+
+		<!-- CJK bigram (see text_ja for a Japanese configuration using morphological 
+			analysis) -->
+		<fieldType name="text_nonstop_cjk" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- normalize width before bigram, as e.g. half-width dakuten combine -->
+				<filter class="solr.CJKWidthFilterFactory" />
+				<!-- for any non-CJK -->
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.CJKBigramFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Czech -->
+		<fieldType name="text_nonstop_cz" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.CzechStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Danish -->
+		<fieldType name="text_nonstop_da" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Danish" />
+			</analyzer>
+		</fieldType>
+
+		<!-- German -->
+		<fieldType name="text_nonstop_de" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.GermanNormalizationFilterFactory" />
+				<filter class="solr.GermanLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.GermanMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="German2"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Greek -->
+		<fieldType name="text_nonstop_el" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- greek specific lowercase for sigma -->
+				<filter class="solr.GreekLowerCaseFilterFactory" />
+				<filter class="solr.GreekStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Spanish -->
+		<fieldType name="text_nonstop_es" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SpanishLightStemFilterFactory" />
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Spanish"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Basque -->
+		<fieldType name="text_nonstop_eu" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Basque" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Persian -->
+		<fieldType name="text_nonstop_fa" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<!-- for ZWNJ -->
+				<charFilter class="solr.PersianCharFilterFactory" />
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.ArabicNormalizationFilterFactory" />
+				<filter class="solr.PersianNormalizationFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Finnish -->
+		<fieldType name="text_nonstop_fi" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Finnish" />
+				<!-- less aggressive: <filter class="solr.FinnishLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- French -->
+		<fieldType name="text_nonstop_fr" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_fr.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.FrenchLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.FrenchMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="French"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Irish -->
+		<fieldType name="text_nonstop_ga" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes d', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_ga.txt" />
+				<!-- removes n-, etc. position increments is intentionally false! -->
+				<filter class="solr.IrishLowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Irish" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Galician -->
+		<fieldType name="text_nonstop_gl" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.GalicianStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.GalicianMinimalStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Hindi -->
+		<fieldType name="text_nonstop_hi" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<!-- normalizes unicode representation -->
+				<filter class="solr.IndicNormalizationFilterFactory" />
+				<!-- normalizes variation in spelling -->
+				<filter class="solr.HindiNormalizationFilterFactory" />
+				<filter class="solr.HindiStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Hungarian -->
+		<fieldType name="text_nonstop_hu" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Hungarian" />
+				<!-- less aggressive: <filter class="solr.HungarianLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Armenian -->
+		<fieldType name="text_nonstop_hy" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Armenian" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Indonesian -->
+		<fieldType name="text_nonstop_id" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<!-- for a less aggressive approach (only inflectional suffixes), set 
+					stemDerivational to false -->
+				<filter class="solr.IndonesianStemFilterFactory"
+					stemDerivational="true" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Italian -->
+		<fieldType name="text_nonstop_it" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<!-- removes l', etc -->
+				<filter class="solr.ElisionFilterFactory" ignoreCase="true"
+					articles="lang/contractions_it.txt" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.ItalianLightStemFilterFactory" />
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Italian"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Japanese using morphological analysis (see text_cjk for a configuration 
+			using bigramming) NOTE: If you want to optimize search for precision, use 
+			default operator AND in your query parser config with <solrQueryParser defaultOperator="AND"/> 
+			further down in this file. Use OR if you would like to optimize for recall 
+			(default). -->
+		<fieldType name="text_nonstop_ja" class="solr.TextField"
+			positionIncrementGap="100" autoGeneratePhraseQueries="false">
+			<analyzer>
+				<!-- Kuromoji Japanese morphological analyzer/tokenizer (JapaneseTokenizer) 
+					Kuromoji has a search mode (default) that does segmentation useful for search. 
+					A heuristic is used to segment compounds into its parts and the compound 
+					itself is kept as synonym. Valid values for attribute mode are: normal: regular 
+					segmentation search: segmentation useful for search with synonyms compounds 
+					(default) extended: same as search mode, but unigrams unknown words (experimental) 
+					For some applications it might be good to use search mode for indexing and 
+					normal mode for queries to reduce recall and prevent parts of compounds from 
+					being matched and highlighted. Use <analyzer type="index"> and <analyzer 
+					type="query"> for this and mode normal in query. Kuromoji also has a convenient 
+					user dictionary feature that allows overriding the statistical model with 
+					your own entries for segmentation, part-of-speech tags and readings without 
+					a need to specify weights. Notice that user dictionaries have not been subject 
+					to extensive testing. User dictionary attributes are: userDictionary: user 
+					dictionary filename userDictionaryEncoding: user dictionary encoding (default 
+					is UTF-8) See lang/userdict_ja.txt for a sample user dictionary file. Punctuation 
+					characters are discarded by default. Use discardPunctuation="false" to keep 
+					them. See http://wiki.apache.org/solr/JapaneseLanguageSupport for more on 
+					Japanese language support. -->
+				<tokenizer class="solr.JapaneseTokenizerFactory" mode="search" />
+				<!--<tokenizer class="solr.JapaneseTokenizerFactory" mode="search" userDictionary="lang/userdict_ja.txt"/> -->
+				<!-- Reduces inflected verbs and adjectives to their base/dictionary 
+					forms (辞書形) -->
+				<filter class="solr.JapaneseBaseFormFilterFactory" />
+				<!-- Removes tokens with certain part-of-speech tags -->
+				<filter class="solr.JapanesePartOfSpeechStopFilterFactory"
+					tags="lang/stoptags_ja.txt" />
+				<!-- Normalizes full-width romaji to half-width and half-width kana to 
+					full-width (Unicode NFKC subset) -->
+				<filter class="solr.CJKWidthFilterFactory" />
+				<!-- Removes common tokens typically not useful for search, but have 
+					a negative effect on ranking -->
+				<!-- Normalizes common katakana spelling variations by removing any last 
+					long sound character (U+30FC) -->
+				<filter class="solr.JapaneseKatakanaStemFilterFactory"
+					minimumLength="4" />
+				<!-- Lower-cases romaji characters -->
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Latvian -->
+		<fieldType name="text_nonstop_lv" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.LatvianStemFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Dutch -->
+		<fieldType name="text_nonstop_nl" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.StemmerOverrideFilterFactory" dictionary="lang/stemdict_nl.txt"
+					ignoreCase="false" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Dutch" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Norwegian -->
+		<fieldType name="text_nonstop_no" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Norwegian" />
+				<!-- less aggressive: <filter class="solr.NorwegianLightStemFilterFactory" 
+					variant="nb"/> -->
+				<!-- singular/plural: <filter class="solr.NorwegianMinimalStemFilterFactory" 
+					variant="nb"/> -->
+				<!-- The "light" and "minimal" stemmers support variants: nb=Bokmål, 
+					nn=Nynorsk, no=Both -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Portuguese -->
+		<fieldType name="text_nonstop_pt" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.PortugueseLightStemFilterFactory" />
+				<!-- less aggressive: <filter class="solr.PortugueseMinimalStemFilterFactory"/> -->
+				<!-- more aggressive: <filter class="solr.SnowballPorterFilterFactory" 
+					language="Portuguese"/> -->
+				<!-- most aggressive: <filter class="solr.PortugueseStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Romanian -->
+		<fieldType name="text_nonstop_ro" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Romanian" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Russian -->
+		<fieldType name="text_nonstop_ru" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Russian" />
+				<!-- less aggressive: <filter class="solr.RussianLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Swedish -->
+		<fieldType name="text_nonstop_sv" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Swedish" />
+				<!-- less aggressive: <filter class="solr.SwedishLightStemFilterFactory"/> -->
+			</analyzer>
+		</fieldType>
+
+		<!-- Thai -->
+		<fieldType name="text_nonstop_th" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.ThaiWordFilterFactory" />
+			</analyzer>
+		</fieldType>
+
+		<!-- Turkish -->
+		<fieldType name="text_nonstop_tr" class="solr.TextField"
+			positionIncrementGap="100">
+			<analyzer>
+				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.TurkishLowerCaseFilterFactory" />
+				<filter class="solr.SnowballPorterFilterFactory" language="Turkish" />
+			</analyzer>
+		</fieldType>
+
+	</types>
+
+	<fields>
+		<field name="DOCUMENT_ID" type="string" indexed="true" stored="true"
+			required="true" multiValued="false" />
+		<field name="CHUNK_ID" type="string" indexed="true" stored="true"
+			required="true" multiValued="false" />
+		<field name="PROJECT_ID" type="string" indexed="true" stored="true"
+			required="true" multiValued="false" />
+		<field name="CHUNK_URL" type="string" indexed="true" stored="true"
+			required="true" multiValued="false" />
+		<field name="DOCUMENT_URL" type="string" indexed="true" stored="true"
+			required="true" multiValued="false" />
+
+		<field name="LANGUAGE" type="string" indexed="true" stored="true" />
+		<field name="ISO_CODE" type="string" indexed="true" stored="true" />
+
+		<field name="KEYWORDS" type="text_general" indexed="true"
+			stored="false" multiValued="true" />
+
+		<!-- English -->
+		<field name="BREADCRUMB_en" type="text_en" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_en" type="text_en" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="CHUNKTEXT_en" type="text_en" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_en" type="text_en" indexed="true" stored="false"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_en" type="text_nonstop_en"
+			indexed="true" stored="false" multiValued="true" />
+		<copyField source="CHUNKTEXT_en" dest="FULLTEXT_nonstop_en" />
+		<copyField source="BREADCRUMB_en" dest="FULLTEXT_nonstop_en" />
+		<copyField source="CHUNKTEXT_en" dest="FULLTEXT_en" />
+		<copyField source="BREADCRUMB_en" dest="FULLTEXT_en" />
+
+		<field name="HIFITEXT_en" type="text_en" indexed="true" stored="true"
+			multiValued="false" />
+
+		<!-- Arabic -->
+		<field name="BREADCRUMB_ar" type="text_ar" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ar" type="text_ar" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ar" type="text_ar" indexed="true" stored="true"
+			multiValued="true" />
+
+		<field name="FULLTEXT_nonstop_ar" type="text_nonstop_ar"
+			indexed="true" stored="false" multiValued="true" />
+
+
+		<field name="HIFITEXT_ar" type="text_ar" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ar" type="text_ar" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ar" dest="FULLTEXT_nonstop_ar" />
+		<copyField source="BREADCRUMB_ar" dest="FULLTEXT_nonstop_ar" />
+		<copyField source="CHUNKTEXT_ar" dest="FULLTEXT_ar" />
+		<copyField source="BREADCRUMB_ar" dest="FULLTEXT_ar" />
+
+		<!-- Bulgarian -->
+		<field name="BREADCRUMB_bg" type="text_bg" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_bg" type="text_bg" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_bg" type="text_bg" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_bg" type="text_nonstop_bg"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_bg" type="text_bg" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_bg" type="text_bg" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_bg" dest="FULLTEXT_nonstop_bg" />
+		<copyField source="BREADCRUMB_bg" dest="FULLTEXT_nonstop_bg" />
+		<copyField source="CHUNKTEXT_bg" dest="FULLTEXT_bg" />
+		<copyField source="BREADCRUMB_bg" dest="FULLTEXT_bg" />
+
+		<!-- Catalan -->
+		<field name="BREADCRUMB_ca" type="text_ca" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ca" type="text_ca" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ca" type="text_ca" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_ca" type="text_nonstop_ca"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_ca" type="text_ca" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ca" type="text_ca" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ca" dest="FULLTEXT_nonstop_ca" />
+		<copyField source="BREADCRUMB_ca" dest="FULLTEXT_nonstop_ca" />
+		<copyField source="CHUNKTEXT_ca" dest="FULLTEXT_ca" />
+		<copyField source="BREADCRUMB_ca" dest="FULLTEXT_ca" />
+
+		<!-- CJK -->
+		<field name="BREADCRUMB_cjk" type="text_cjk" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_cjk" type="text_cjk" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FULLTEXT_cjk" type="text_cjk" indexed="true"
+			stored="true" multiValued="true" />
+		<field name="FULLTEXT_nonstop_cjk" type="text_nonstop_cjk"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_cjk" type="text_cjk" indexed="true"
+			stored="true" multiValued="false" />
+
+		<field name="CHUNKTEXT_cjk" type="text_cjk" indexed="true"
+			stored="true" multiValued="false" />
+
+		<copyField source="CHUNKTEXT_cjk" dest="FULLTEXT_nonstop_cjk" />
+		<copyField source="BREADCRUMB_cjk" dest="FULLTEXT_nonstop_cjk" />
+		<copyField source="CHUNKTEXT_cjk" dest="FULLTEXT_cjk" />
+		<copyField source="BREADCRUMB_cjk" dest="FULLTEXT_cjk" />
+
+		<!-- Czech -->
+		<field name="BREADCRUMB_cz" type="text_cz" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_cz" type="text_cz" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_cz" type="text_cz" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_cz" type="text_nonstop_cz"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_cz" type="text_cz" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_cz" type="text_cz" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_cz" dest="FULLTEXT_nonstop_cz" />
+		<copyField source="BREADCRUMB_cz" dest="FULLTEXT_nonstop_cz" />
+		<copyField source="CHUNKTEXT_cz" dest="FULLTEXT_cz" />
+		<copyField source="BREADCRUMB_cz" dest="FULLTEXT_cz" />
+
+		<!-- Danish -->
+		<field name="BREADCRUMB_da" type="text_da" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_da" type="text_da" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_da" type="text_da" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_da" type="text_nonstop_da"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_da" type="text_da" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_da" type="text_da" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_da" dest="FULLTEXT_nonstop_da" />
+		<copyField source="BREADCRUMB_da" dest="FULLTEXT_nonstop_da" />
+		<copyField source="CHUNKTEXT_da" dest="FULLTEXT_da" />
+		<copyField source="BREADCRUMB_da" dest="FULLTEXT_da" />
+
+		<!-- German -->
+		<field name="BREADCRUMB_de" type="text_de" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_de" type="text_de" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_de" type="text_de" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_de" type="text_nonstop_de"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_de" type="text_de" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_de" type="text_de" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_de" dest="FULLTEXT_nonstop_de" />
+		<copyField source="BREADCRUMB_de" dest="FULLTEXT_nonstop_de" />
+		<copyField source="CHUNKTEXT_de" dest="FULLTEXT_de" />
+		<copyField source="BREADCRUMB_de" dest="FULLTEXT_de" />
+
+		<!-- Greek -->
+		<field name="BREADCRUMB_el" type="text_el" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_el" type="text_el" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_el" type="text_el" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_el" type="text_nonstop_el"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_el" type="text_el" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_el" type="text_el" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_el" dest="FULLTEXT_nonstop_el" />
+		<copyField source="BREADCRUMB_el" dest="FULLTEXT_nonstop_el" />
+		<copyField source="CHUNKTEXT_el" dest="FULLTEXT_el" />
+		<copyField source="BREADCRUMB_el" dest="FULLTEXT_el" />
+
+		<!-- Spanish -->
+		<field name="BREADCRUMB_es" type="text_es" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_es" type="text_es" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_es" type="text_es" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_es" type="text_nonstop_es"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_es" type="text_es" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_es" type="text_es" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_es" dest="FULLTEXT_nonstop_es" />
+		<copyField source="BREADCRUMB_es" dest="FULLTEXT_nonstop_es" />
+		<copyField source="CHUNKTEXT_es" dest="FULLTEXT_es" />
+		<copyField source="BREADCRUMB_es" dest="FULLTEXT_es" />
+
+		<!-- Basque -->
+		<field name="BREADCRUMB_eu" type="text_eu" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_eu" type="text_eu" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_eu" type="text_eu" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_eu" type="text_nonstop_eu"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_eu" type="text_eu" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_eu" type="text_eu" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_eu" dest="FULLTEXT_nonstop_eu" />
+		<copyField source="BREADCRUMB_eu" dest="FULLTEXT_nonstop_eu" />
+		<copyField source="CHUNKTEXT_eu" dest="FULLTEXT_eu" />
+		<copyField source="BREADCRUMB_eu" dest="FULLTEXT_eu" />
+
+		<!-- Persian -->
+		<field name="BREADCRUMB_fa" type="text_fa" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_fa" type="text_fa" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_fa" type="text_fa" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_fa" type="text_nonstop_fa"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_fa" type="text_fa" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_fa" type="text_fa" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_fa" dest="FULLTEXT_nonstop_fa" />
+		<copyField source="BREADCRUMB_fa" dest="FULLTEXT_nonstop_fa" />
+		<copyField source="CHUNKTEXT_fa" dest="FULLTEXT_fa" />
+		<copyField source="BREADCRUMB_fa" dest="FULLTEXT_fa" />
+
+		<!-- Finnish -->
+		<field name="BREADCRUMB_fi" type="text_fi" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_fi" type="text_fi" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_fi" type="text_fi" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_fi" type="text_nonstop_fi"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_fi" type="text_fi" indexed="true" stored="true"
+			multiValued="false" />
+
+
+		<field name="CHUNKTEXT_fi" type="text_fi" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_fi" dest="FULLTEXT_nonstop_fi" />
+		<copyField source="BREADCRUMB_fi" dest="FULLTEXT_nonstop_fi" />
+		<copyField source="CHUNKTEXT_fi" dest="FULLTEXT_fi" />
+		<copyField source="BREADCRUMB_fi" dest="FULLTEXT_fi" />
+
+		<!-- French -->
+		<field name="BREADCRUMB_fr" type="text_fr" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_fr" type="text_fr" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_fr" type="text_fr" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_fr" type="text_nonstop_fr"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_fr" type="text_fr" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_fr" type="text_fr" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_fr" dest="FULLTEXT_nonstop_fr" />
+		<copyField source="BREADCRUMB_fr" dest="FULLTEXT_nonstop_fr" />
+		<copyField source="CHUNKTEXT_fr" dest="FULLTEXT_fr" />
+		<copyField source="BREADCRUMB_fr" dest="FULLTEXT_fr" />
+
+		<!-- Irish -->
+		<field name="BREADCRUMB_ga" type="text_ga" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ga" type="text_ga" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ga" type="text_ga" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_ga" type="text_nonstop_ga"
+			indexed="true" stored="false" multiValued="true" />
+		<field name="HIFITEXT_ga" type="text_ga" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ga" type="text_ga" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ga" dest="FULLTEXT_nonstop_ga" />
+		<copyField source="BREADCRUMB_ga" dest="FULLTEXT_nonstop_ga" />
+		<copyField source="CHUNKTEXT_ga" dest="FULLTEXT_ga" />
+		<copyField source="BREADCRUMB_ga" dest="FULLTEXT_ga" />
+
+		<!-- Galician -->
+		<field name="BREADCRUMB_gl" type="text_gl" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_gl" type="text_gl" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_gl" type="text_gl" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_gl" type="text_nonstop_gl"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_gl" type="text_gl" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_gl" type="text_gl" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_gl" dest="FULLTEXT_nonstop_gl" />
+		<copyField source="BREADCRUMB_gl" dest="FULLTEXT_nonstop_gl" />
+		<copyField source="CHUNKTEXT_gl" dest="FULLTEXT_gl" />
+		<copyField source="BREADCRUMB_gl" dest="FULLTEXT_gl" />
+
+		<!-- Hindi -->
+		<field name="BREADCRUMB_hi" type="text_hi" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_hi" type="text_hi" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_hi" type="text_hi" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_hi" type="text_nonstop_hi"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_hi" type="text_hi" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_hi" type="text_hi" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_hi" dest="FULLTEXT_nonstop_hi" />
+		<copyField source="BREADCRUMB_hi" dest="FULLTEXT_nonstop_hi" />
+		<copyField source="CHUNKTEXT_hi" dest="FULLTEXT_hi" />
+		<copyField source="BREADCRUMB_hi" dest="FULLTEXT_hi" />
+
+		<!-- Hungarian -->
+		<field name="BREADCRUMB_hu" type="text_hu" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_hu" type="text_hu" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_hu" type="text_hu" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_hu" type="text_nonstop_hu"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_hu" type="text_hu" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_hu" type="text_hu" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_hu" dest="FULLTEXT_nonstop_hu" />
+		<copyField source="BREADCRUMB_hu" dest="FULLTEXT_nonstop_hu" />
+		<copyField source="CHUNKTEXT_hu" dest="FULLTEXT_hu" />
+		<copyField source="BREADCRUMB_hu" dest="FULLTEXT_hu" />
+
+		<!-- Armenian -->
+		<field name="BREADCRUMB_hy" type="text_hy" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_hy" type="text_hy" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_hy" type="text_hy" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_hy" type="text_nonstop_hy"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_hy" type="text_hy" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="CHUNKTEXT_hy" type="text_hy" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_hy" dest="FULLTEXT_nonstop_hy" />
+		<copyField source="BREADCRUMB_hy" dest="FULLTEXT_nonstop_hy" />
+		<copyField source="CHUNKTEXT_hy" dest="FULLTEXT_hy" />
+		<copyField source="BREADCRUMB_hy" dest="FULLTEXT_hy" />
+
+		<!-- Indonesian -->
+		<field name="BREADCRUMB_id" type="text_id" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_id" type="text_id" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_id" type="text_id" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_id" type="text_nonstop_id"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_id" type="text_id" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_id" type="text_id" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_id" dest="FULLTEXT_nonstop_id" />
+		<copyField source="BREADCRUMB_id" dest="FULLTEXT_nonstop_id" />
+		<copyField source="CHUNKTEXT_id" dest="FULLTEXT_id" />
+		<copyField source="BREADCRUMB_id" dest="FULLTEXT_id" />
+
+		<!-- Italian -->
+		<field name="BREADCRUMB_it" type="text_it" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_it" type="text_it" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_it" type="text_it" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_it" type="text_nonstop_it"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_it" type="text_it" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_it" type="text_it" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_it" dest="FULLTEXT_nonstop_it" />
+		<copyField source="BREADCRUMB_it" dest="FULLTEXT_nonstop_it" />
+		<copyField source="CHUNKTEXT_it" dest="FULLTEXT_it" />
+		<copyField source="BREADCRUMB_it" dest="FULLTEXT_it" />
+
+		<!-- Japanese -->
+		<field name="BREADCRUMB_ja" type="text_ja" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ja" type="text_ja" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ja" type="text_ja" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_ja" type="text_nonstop_ja"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_ja" type="text_ja" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ja" type="text_ja" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ja" dest="FULLTEXT_nonstop_ja" />
+		<copyField source="BREADCRUMB_ja" dest="FULLTEXT_nonstop_ja" />
+		<copyField source="CHUNKTEXT_ja" dest="FULLTEXT_ja" />
+		<copyField source="BREADCRUMB_ja" dest="FULLTEXT_ja" />
+
+		<!-- Latvian -->
+		<field name="BREADCRUMB_lv" type="text_lv" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_lv" type="text_lv" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_lv" type="text_lv" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_lv" type="text_nonstop_lv"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_lv" type="text_lv" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_lv" type="text_lv" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_lv" dest="FULLTEXT_nonstop_lv" />
+		<copyField source="BREADCRUMB_lv" dest="FULLTEXT_nonstop_lv" />
+		<copyField source="CHUNKTEXT_lv" dest="FULLTEXT_lv" />
+		<copyField source="BREADCRUMB_lv" dest="FULLTEXT_lv" />
+
+		<!-- Dutch -->
+		<field name="BREADCRUMB_nl" type="text_nl" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_nl" type="text_nl" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_nl" type="text_nl" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_nl" type="text_nonstop_nl"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_nl" type="text_nl" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_nl" type="text_nl" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_nl" dest="FULLTEXT_nonstop_nl" />
+		<copyField source="BREADCRUMB_nl" dest="FULLTEXT_nonstop_nl" />
+		<copyField source="CHUNKTEXT_nl" dest="FULLTEXT_nl" />
+		<copyField source="BREADCRUMB_nl" dest="FULLTEXT_nl" />
+
+		<!-- Norwegian -->
+		<field name="BREADCRUMB_no" type="text_no" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_no" type="text_no" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_no" type="text_no" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_no" type="text_nonstop_no"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_no" type="text_no" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_no" type="text_no" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_no" dest="FULLTEXT_nonstop_no" />
+		<copyField source="BREADCRUMB_no" dest="FULLTEXT_nonstop_no" />
+		<copyField source="CHUNKTEXT_no" dest="FULLTEXT_no" />
+		<copyField source="BREADCRUMB_no" dest="FULLTEXT_no" />
+
+		<!-- Portugese -->
+		<field name="BREADCRUMB_pt" type="text_pt" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_pt" type="text_pt" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_pt" type="text_pt" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_pt" type="text_nonstop_pt"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_pt" type="text_pt" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_pt" type="text_pt" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_pt" dest="FULLTEXT_nonstop_pt" />
+		<copyField source="BREADCRUMB_pt" dest="FULLTEXT_nonstop_pt" />
+		<copyField source="CHUNKTEXT_pt" dest="FULLTEXT_pt" />
+		<copyField source="BREADCRUMB_pt" dest="FULLTEXT_pt" />
+
+		<!-- Russian -->
+		<field name="BREADCRUMB_ru" type="text_ru" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ru" type="text_ru" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ru" type="text_ru" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_ru" type="text_nonstop_ru"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_ru" type="text_ru" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ru" type="text_ru" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ru" dest="FULLTEXT_nonstop_ru" />
+		<copyField source="BREADCRUMB_ru" dest="FULLTEXT_nonstop_ru" />
+		<copyField source="CHUNKTEXT_ru" dest="FULLTEXT_ru" />
+		<copyField source="BREADCRUMB_ru" dest="FULLTEXT_ru" />
+
+		<!-- Swedish -->
+		<field name="BREADCRUMB_sv" type="text_sv" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_sv" type="text_sv" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_sv" type="text_sv" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_sv" type="text_nonstop_sv"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_sv" type="text_sv" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_sv" type="text_sv" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_sv" dest="FULLTEXT_nonstop_sv" />
+		<copyField source="BREADCRUMB_sv" dest="FULLTEXT_nonstop_sv" />
+		<copyField source="CHUNKTEXT_sv" dest="FULLTEXT_sv" />
+		<copyField source="BREADCRUMB_sv" dest="FULLTEXT_sv" />
+
+		<!-- Thai -->
+		<field name="BREADCRUMB_th" type="text_th" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_th" type="text_th" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_th" type="text_th" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_th" type="text_nonstop_th"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_th" type="text_th" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_th" type="text_th" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_th" dest="FULLTEXT_nonstop_th" />
+		<copyField source="BREADCRUMB_th" dest="FULLTEXT_nonstop_th" />
+		<copyField source="CHUNKTEXT_th" dest="FULLTEXT_th" />
+		<copyField source="BREADCRUMB_th" dest="FULLTEXT_th" />
+
+		<!-- Turkish -->
+		<field name="BREADCRUMB_tr" type="text_tr" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_tr" type="text_tr" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_tr" type="text_tr" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_tr" type="text_nonstop_tr"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_tr" type="text_tr" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_tr" type="text_tr" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_tr" dest="FULLTEXT_nonstop_tr" />
+		<copyField source="BREADCRUMB_tr" dest="FULLTEXT_nonstop_tr" />
+		<copyField source="CHUNKTEXT_tr" dest="FULLTEXT_tr" />
+		<copyField source="BREADCRUMB_tr" dest="FULLTEXT_tr" />
+
+		<!-- Romanian -->
+		<field name="BREADCRUMB_ro" type="text_ro" indexed="true"
+			stored="true" multiValued="false" />
+		<field name="FILENAME_ro" type="text_ro" indexed="true" stored="true"
+			multiValued="false" />
+		<field name="FULLTEXT_ro" type="text_ro" indexed="true" stored="true"
+			multiValued="true" />
+		<field name="FULLTEXT_nonstop_ro" type="text_nonstop_ro"
+			indexed="true" stored="false" multiValued="true" />
+
+		<field name="HIFITEXT_ro" type="text_ro" indexed="true" stored="true"
+			multiValued="false" />
+
+		<field name="CHUNKTEXT_ro" type="text_ro" indexed="true" stored="true"
+			multiValued="false" />
+
+		<copyField source="CHUNKTEXT_ro" dest="FULLTEXT_nonstop_ro" />
+		<copyField source="BREADCRUMB_ro" dest="FULLTEXT_nonstop_ro" />
+		<copyField source="CHUNKTEXT_ro" dest="FULLTEXT_ro" />
+		<copyField source="BREADCRUMB_ro" dest="FULLTEXT_ro" />
+
+
+		<field name="_version_" type="long" indexed="true" stored="true" />
+		<field name="text" type="text_general" indexed="true" stored="false"
+			multiValued="true" />
+		<dynamicField name="cat*" type="string" indexed="true"
+			stored="true" />
+		<dynamicField name="multi*" type="string" indexed="true"
+			stored="true" multiValued="true" />
+
+	</fields>
+
+	<uniqueKey>CHUNK_ID</uniqueKey>
+
+
+</schema>

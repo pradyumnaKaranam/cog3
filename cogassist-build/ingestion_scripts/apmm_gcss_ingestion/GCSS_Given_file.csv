@@ -1,0 +1,309 @@
+Incident #,(Proposed) TAG,Question_Reviewed,Answer_Reviewed,Author_id,Approver_id
+INC0595183,apmm_gcss_documentation,How to check haulage site for a shipment / tpdoc,"Problem Scenario: User wants to know the haulage site details for a specific shipment / tpdoc
+Diagnostics: For a all the containers linked to a shipment / tpdoc, user wants to know the details of haulage site including when and who has done the last updates
+
+
+Resolution Steps: 
+1. Open the shipment in FE.
+2. Check the containers or any specific container for which the user has requested for the haulage details.
+3. Run the below SQL to get the details from the gcss database.
+select distinct
+sr.reference_string ""Shipment"",
+sr1.reference_string ""TPDoc"",
+hs.ADDRESS,
+hs.NAME,
+hst.NAME ""HAULAGE_SITE_TYPE"",
+ea.FK_RKEMEQBC_PART,
+hs.create_time,
+hs.create_user,
+hs.update_time,
+hs.update_user
+from
+gexpprod.shipment_version sv,
+gexpprod.shipment_reference sr,
+gexpprod.shipment_reference sr1,
+gexpprod.haulage_arrangement ha,
+gexpprod.haulage_site hs,
+gexpprod.cargo ca,
+gexpprod.haulage_site_type hst,
+gexpprod.EQUIPMENT_ASSIGNMENT ea
+where 1=1
+and sv.instance_id = sr.fk_shipment_version
+and sv.instance_id = ca.fk_shipment_version
+and sv.instance_id = ea.fk_shipment_version
+and sr1.FK_TRANSPORT_DOC_VERSION_EX = ca.FK_TRANSPORT_DOC_VERSION_IN
+and sr1.fk_entity_type_reference_type = '5'
+and ca.FK_TRANSPORT_DOC_VERSION_IN = ha.FK_TRANSPORT_DOC_VERSION_EX
+and hst.instance_id = hs.FK_HAULAGE_SITE_TYPE
+and ha.instance_id = hs.FK_HAULAGE_ARRANGEMENT
+and sr.fk_entity_type_reference_type = '1'
+and upper(substr(sr.reference_string,1,9)) = 'shipment number'
+order by hs.NAME",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0556301,apmm_gcss_documentation,How to check the mapping issue in GCSS and GMS,"Problem Scenario: Mapping issue where location was update in GMS but it was not reflected in GCSS
+Diagnostics: GMS send update to GCSS related to compliance. It contains details related to complaince where mapping issues happen due to transaction issues.
+
+
+Resolution Steps: 
+1. Open the shipment in FE.
+2. Check the compliance window for the mismatch data from GMS to GCSS
+3. Run the below SQL to get the details of any transaction rejected from GSA due to which the mapping got gailed from the gcss database.
+select 
+sr.reference_string,
+gt.STATE,
+gt.ERROR_CODE,
+gt.ERROR_NOTE,
+gt.REQUEST_ID,
+gt.SUB_ENTITY_ID 
+from
+gexpprod.shipment_version sv,
+gexpprod.shipment_reference sr,
+gexpprod.cargo ca,
+gexpprod.TRANSPORT_DOC_VERSION tdv,
+gexpprod.TRANSPORT_DOC td,
+gsa.gsa_transaction gt
+WHERE 1=1
+and sv.instance_id = sr.fk_shipment_version
+and sv.instance_id = ca.fk_shipment_version
+and ca.FK_TRANSPORT_DOC_VERSION_IN = tdv.instance_id
+and td.instance_id = tdv.fk_transport_doc
+and td.instance_id = gt.SUB_ENTITY_ID
+and upper(substr(sr.reference_string,1,9)) in ('shipment number')
+
+4. Once you get the rejected reason from the GSA transaction, request GMS to send the message again with correct details",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0606094,apmm_gcss_documentation,How to close amend tpdoc information,"Problem Scenario: User is not able to close the amend tpdoc information task from Front end.
+Diagnostics: This a known issue caused for the large bookings because the shipment notes does not get updated with the doc id when the amended verify copy is submited and processed.
+
+
+Resolution Steps: 
+1. Open the shipment in FE. Check the amend tpdoc information task status (open or in progress or pending)in the activity plan.
+2. If the IAVC task is closed then go to panel 3 and run the script G
+3. Amend tpdoc information task will get closed
+4. If the IAVC task in not closed, ask user to issue the verify copy to get the IAVC and amend tpdoc information task get closed ",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0606094,apmm_gcss_documentation,How to open mark tpdoc as approved,"Problem Scenario: The mark tpdoc as approved task does not open after the IVC/IAVC task is closed
+Diagnostics: This a known issue caused for the large bookings because the shipment notes does not get updated with the doc id when the amended verify copy is submited and processed.
+
+Resolution Steps: 
+1. Open the shipment in FE. Check the mark tpdoc as approved task status (Pending) in the activity plan.
+2. Go to panel 1 and run the script M to open the task.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0599574,apmm_gcss_documentation,Why user did not receive the arrival notice document,"Problem Scenario: User is did not received any arrival notice on mail id
+Diagnostics: User mentioned that the arrival notice documentation is not delivered to the mail id of the user
+
+
+Resolution Steps: 
+1. Open the shipment in FE. 
+2. Check the shipment notes. Under documentation check the arrival notice has been processed for the user mail id
+3. If yes then reply back that it is not GCSS issue as document has been processed successfully from GCSS
+4. If not then check for dpe logs for the shipment
+5. If nothing is in dpe logs. Check shipment notes to see whether closed manually from backend. If closed manually the document will not be generated.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,"user received Service: GX4TDDOCHMVMO10
+ORA-02292: integrity constraint (GEXPPROD.DCAS_DCAD_GROUP) violated - child record found # Table(TP_DOC_ADDRESS_GROUP) while trying to undocument one cargo line","Problem Scenario : user received the error when trying to undocument one cargo line.
+
+Diagnosis : The error occurs due to shipper and consignee address remain in the tpdoc adress group table for the transport document user wants to delete.
+
+Resolution : Try the steps provided by user and verify if the error appears.
+
+If the error occurs, check in the database table tpdoc_adrees_group and tp doc address with the instance id thrown in the error.
+
+Verify with which tpdoc the shipper and consignee entries are linked for which error is thrown,
+
+delete the shipper and consignee documentation address related to the transport document from FE.
+
+If still the error persist and value from DB is not removed, A RAM need to be raised for the same
+
+
+",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,"user received Document processed (Priority: ) (Template Domain:)
+Failed - Reason: Unknown job error, framework or configuration error
+
+
+---- BELOW IS DEBUGGING INFORMATION - ONLY FOR INTERNAL IBM USE ----
+
+Job processing failed: (ORA-00060: deadlock detected while waiting for resource # Table(DP_RECIPIENT_STATUS)) ","Problem Scenario : user received the error when trying to issue one document
+
+Diagnosis : The error occurs as the resource is occupied by some other task which is taking a longer time to finish.
+Resolution : The error resolve by itself, as soon as the other task finished, the resource is free,so the deadlock is removed.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,"user received Service: GX45AFLSMRKPC11
+ORA-01403: no data found # Table(SHIPMENT_VERSION) InstanceId() error","Problem Scenario : user received the error when trying to make the complete prepaid as YES
+
+Diagnosis : The error occurs as the credit party used for the prepaid charges are not valid ones
+
+Resolution : 
+Ask for the steps if not provided by user .
+Try the steps provided by user and verify if the error appears.
+
+If the error occurs, ask user to change the credit party for the prepaid charges.
+
+
+",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Created by party change request by user./ Shipment handler party change request,"Problem Scenario : Sometime user ask to change the created by party for the shipment if there is any error occur while creating Operational Shipment.
+
+Diagnosis - The error occurs as the shipment handler party account has been disabled.
+
+Resolution - First ask for the steps and verify if the error persist.
+
+If the error occurs , check the shipment handler party from shipment handler table in Database and verify the same in user account table.
+
+If the account is disabled ask user to provide alternate id to use as shipment handler. 
+
+Verify if the given party is enabled in user account table.
+
+Go to Panel 0 and press T. Provide the required details",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why downstream application users are not viewing the latest updated container move at their end,"Problem Scenario: Why downstream application users are not viewing the latest updated container move at their end.
+Diagnosis: According to GCSS Database, the containers have move details updated in EXTDATA.RNICEMV table, which get sent to the downstream applications through GDS.
+Steps: Refer to the EXTDATA.RNICEMV table for the containers of the booking and the corresponding move updates. 
+Verify the same in the GDS to check if the correct values are present in GDS as well. 
+If the GDS contains the same data, it implies that GCSS is sending the proper data. 
+Downstream users are requested to get the latest GDS by performing GQ, so that the current data is obtained by them.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,When does Issue Original TpDoc (IOTD) task get auto closed by user AUTOISSUE,"Problem Scenario: When does IOTD task get auto closed by user AUTOISSUE
+Diagnosis: The IOTD task is auto closed when AUTOISSUE user of the corresponding business unit team's profile is ACTIVE and certain tasks are closed in the booking, provided the autoissuing property is not disabled in the booking properties window of the booking.
+Steps: 
+1) The 'Manually issue orig. TPDoc' is set as 'No' in Booking Properties screen
+2) The AUTOISSUE user is active for the corresponding business unit team's profile.
+3) When all the following tasks are closed:
+a) Mark Transport Document As Approved 
+b) Approve Freight Release Documentation 
+c) Amend TPDoc Information
+d) Confirm Shipment 
+e) Approve Monetary Status Documentation
+f) Resolve Customs Data quality issue",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why the details of the customer that is showing in GCSS front end is not the same as what is present in database,"Problem Scenario: The details of the customer that is showing in GCSS front end is not the same as what is present in database
+Diagnosis: The SCV database must have been updated where the details of the customer has been changed on a date later than when the customer was added as a party in GCSS booking
+Steps: 
+1) Check the customer type - Organization/Person/Web User
+2) Based on above, check the details in EXTDATA.SCV_ORG_DETAIL or EXTDATA.SCV_PERS_DETAIL or SCV_WEB_USER_DETAIL
+3) Check the if the details are same in database and in GCSS booking.
+4) If there is discrepancy, check the CNS_CHGE_TIMESTAMP of the corresponding customer in EXTDATA.SCV_CUSTNO table.
+5) The CNS_CHGE_TIMESTAMP is likely to be a date later than when the customer was added as a party in the booking. 
+That is why the data that was present when the customer was added as a party in the booking gets shown in the booking and not the updated one.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why Price Calculation Date (PCD) gets updated to Expected Time of Departure (ETD) of first vessel voyage leg,"Problem Scenario: Price Calculation Date (PCD) gets updated to Expected Time of Departure (ETD) of first vessel voyage leg
+Diagnosis: The SCV database must have been updated where the details of the customer has been changed on a date later than when the customer was added as a party in GCSS booking
+Steps: 
+1) From GCSS_PARAMETER table, check if PRICING/UseLimitedPCDRule='C' and Export_Haulage_Dates_use_for PCD='Y'
+2) Rule: If GCSS-parameter 'PRICING/UseLimitedPCDRule' is 'C' (Conditional), then for Shipments which are NOT under FMC regulations (FMC-flag is �N�), the PCD calculation will follow PCD = ETD of the first water leg.
+3) Check if the booking is Non-FMC shipment.
+4) Check ETD of the first water leg at the time of re-pricing.
+5) Therefore, the PCD will be changed to ETD of the first water leg
+The change of PCD change here is expected result and according to logic in this scenario.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why Send Collect Invoice Request task got reopened and closed again in a booking and invoice generated,"Problem Scenario: Why Send Collect Invoice Request (SCIR) task got reopened and closed again in a booking and invoice generated
+Diagnosis: The shipment 'S' is related to TPDocs 'T1' and 'T2'. 
+The SCIR task for both the TPDocs got reopened on a particular date and was closed again after a minute.
+The same also reflects in GCSS Front end shipment notes.
+Steps:
+1) Checked from Activity Plan table, the Invoice Details were modified by user for the collect charges of both the TPDocs on 2016-06-07 at 12:58 and 12:57 UTC.
+2) As a result the Apply and Verify Collect Invoice Details and Send Collect Invoice Details tasks got reopened.
+2) Following this  Apply and Verify Collect Invoice Details task was closed by user by clicking on Complete Collect button in Modify Pricing and Invoice details screen
+3) As a result, the Send Collect Invoice Request task also got closed by auto issuing of the Collect Invoice due to all conditions being met.
+This is the reason why SCIR task closed again and invoice generated.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why negative value appears in Transit Time field in GDS Route Link tag TAG2630 ,"Problem Scenario: Negative value appears in Transit Time field in GDS Route Link tag TAG2630 
+Diagnosis: The negative value appearing in transit time field is not an issue from GCSS end. 
+This update is made by GSIS to MEPC, which in turn gets populated at GCSS when product query is made from GCSS.
+Steps: 
+1) MEPC team has to update the negative value with proper value at their end.
+2) From GCSS, fresh product query is to be made to fetch the updated data from MEPC
+Product query ways- 
+a) Product Reschedule - only this fetches the updated value from MEPC and updates it in GCSS booking
+b) Reroute by Link 
+c) Reroute by Product
+- b) and c) does not necessarily change the negative value in GCSS.
+3) If the negative transit time does not still gets updated with proper value, then the same has to be corrected by RAM update.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why does a shipment get auto repriced,"Problem Scenario: Why does a shipment get auto repriced
+Diagnosis: A shipment gets auto repriced by user AUTOUSER based on certain conditions
+Conditions:
+a) Shipment is auto re-priced at 00:00 UTC on the Price Calculation Date / PCD of the shipment.
+b) If the PCD is changed then another auto re-price takes place on the day of revised/new PCD. ",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,Why the manifest received for a  particular vessel voyage reads the same final delivery port for all the tpdocs,"Problem Scenario: The manifest received for a  particular vessel voyage reads the same final delivery port for all the tpdocs
+Diagnosis: A manifest issued based on a particular vessel voyage contains a final delivery port, that gets reflected for all the tpdocs which contain that particular vessel voyage.
+Cause:
+a) The manifest is issued for the vessel voyage ves/voy, which has got discharge terminal 'DT'. 
+b) So the manifest that Business Unit receives should read the delivery city as the city of 'DT'.
+c) Thus, all the tpdocs that contain the particular ves/voy will show the final delivery port 'DT'",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,From where does Haulage Address of a booking gets picked up from database,"Problem Scenario: From where does the Haulage address of a booking gets picked up
+Diagnosis: The haulage address can be found in tables of EXTDATA schema of GCSS database.
+Steps:
+The Haulage Address has the following parts, whose values can be found in the locations as stated below:-
+1) 'Customer' is picked from GEXPPROD.Haulage_Site.Name
+2) 'Function' is picked from EXTDATA.SCV_Loc_Detail.AddrName
+3) 'AltZipCity' is picked from EXTDATA.SCV_Loc_Detail.Aline3 
+4) 'Street' is picked from GEXPPROD.Haulage_Site.Address
+5) 'City' is picked from EXTDATA.Geographic_Area.Name",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0575980,apmm_gcss_documentation,Why invoice update not reflected ? ,"Problem Senario :  Invoice update not reflected in shipment. 
+
+Diagnostics :   Actually invoice update is not reflected because it was updated by TOP call and then invoice party got modified later on . 
+
+Resolution Steps :   
+
+1. Create a same shipment with pricing . 
+2. Don�t update any invoice details . 
+3. At this stage call TOP to get data from TOP regarding first time invoice update . 
+4. Check shipment notes -  under TOP call we would see that invoice updated . 
+5. Now update party details on invocie line . 
+6. The same update will not be reflected in shipment notes.",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0578180,apmm_gcss_documentation,Why OPS task didnt close by RKEM feed ? ,"Problem Senario :  OPS task didnt close from RKEM feed . 
+
+Diagnostics :   OPS task didnt close due to wrong feed from RKEM . 
+
+Resolution Steps :   
+1. Check  the shipment with OPS task  not closed by RKEM 
+2. Check RKEM MOVE table for the move sent from RKEM . 
+3. verify with other shipment where RKEM closed the task .
+4. The reason is mismatch in load port code which do not match with ACTLOC in RKEMMOVE .  ",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0575980,apmm_gcss_documentation,Why invoice party update is not reflected in shipment notes ?,"Problem Senario :  Invoice party update is not reflected in shipment note. 
+
+Diagnostics :   This is system defect with AFLS shipment .
+
+Resolution Steps :   
+1. Check update time from AFLS INVOICE DETAILS table . Check update time from here for the same invoice line.
+2. Check what happened during that time from shipment note . 
+3. There will not be any shipment note written in this time . 
+4. The same can be replicated with below . 
+Modify the invoice details going into modify invoice window . (only modify invoice / credit party with some other which already added in TPDoc )
+",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0421502,apmm_gcss_documentation,why charge didnt reflect  at MyML side ?,"Problem Senario :   Invocie charge details were not reflected in NewMl side. 
+
+Diagnostics :   NewMl has to check as GCSS reflected correct details . 
+
+Resolution Steps :   
+1. Check GCSS shipment  (from frong end and DB table ) reflecting correct invoice details .
+2.  Ask NewMl team to provide reply GDS  from there end for further analisys to check if anything wrong sent in that GDS feed sent from GCSS.
+",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0601198,apmm_gcss_documentation,Why CAM message didn't receive at EDI side ? ,"Problem Senario :  CAM message didnt generate at EDI side .
+
+Diagnostics :   It should be checked from EDI side as  GCSS log reflect that CAM sent out of GCSS . 
+
+Resolution Steps :   
+1. Check GCSS log if CAM is sent for particular shipment and user . 
+this can be checked using GCSS EXPORT and gcssMQSvcs.stats  log grep with user id who sent haulage .
+for example : grep  ""nin017""  gcssMQSvcs.stats_gcsspra1_160630
+user id = nin017 who sent haulage
+2. We should have the entry with details of sending CAM then we can confirm that GCSS already sent CAM . ",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0607829,apmm_gcss_documentation,Why pricing is incorrect in TPDoc from shipment ? ,"Problem Senario :  Pricing is incorrect in TPDoc compared to shipment .
+
+Diagnostics :   TPDoc sharing container with other TPDoc hence pricing gets distributed . 
+
+Resolution Steps :   
+1. Check opening TPDoc if the container is shared with other TPDoc . This can be checked from pricing window of the TPDoc . 
+2. Check  pricing amount of container of  sharing TPDocs equals to the pricing amount of the same container on shipment level . 
+",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0588888,apmm_gcss_documentation,Why RKEM updated CBU details ? ,"Problem Senario :  RKEM updated CBU details on shipment . 
+
+Diagnostics :    RKEM updated CBU details as the Cbu existing before pricing call was expired . 
+
+Resolution Steps :   
+1. Check what Cbu was there before RKEM updated CBU . 
+2. We can Check going into CBU screen if the same earlier CBU is not valid .
+This  is the reason RKEM updated CBu while pricing request .  ",aisgauta@in.ibm.com,surakshi@in.ibm.com
+INC0601198,apmm_gcss_documentation,Why CAM message didnt reflected in GCSS ?,"Problem Senario :  CAM message dint reflected in GCSS ? 
+
+Diagnostics :   CAM message dint reflected in GCSS as user dint send the CAM message on that time date . 
+
+Resolution Steps :   
+1. Check if user sent CAM and haulage from GCSS on the same date claimed by USER . 
+2. We can check using ""Intermodal"" as key in shipment notes. On checking it was found that user dint send any CAM message also created by date is later that the date provided by user . Hence the shipment was not created 
+when user claims they sent haulage .",aisgauta@in.ibm.com,surakshi@in.ibm.com
+,apmm_gcss_documentation,How can we install SAT tool ,"Problem Senario :  Installing SAT tool 
+
+Diagnostics :   Install lSAT tool from GCSS FE version link . 
+
+Resolution Steps :   Go to link http://10.255.239.210/FE_Builds/GCSS/SAT/ZIP/
+ Download latest version of SAT and then install as epr environment . 
+In case there is mismatch between client and server version then please use latest version . ",aisgauta@in.ibm.com,surakshi@in.ibm.com

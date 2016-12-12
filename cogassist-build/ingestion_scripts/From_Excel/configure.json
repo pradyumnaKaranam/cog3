@@ -1,0 +1,27 @@
+{
+    "admins": ["mea@us.ibm.com", "katie.johnson@us.ibm.com", "anolet@us.ibm.com", "sentmani@in.ibm.com", "navpanwa@in.ibm.com"],
+    "approvers": ["jmullange@us.ibm.com","ballentj@us.ibm.com","reedc@us.ibm.com"],
+    "authors": ["billie@us.ibm.com"],
+
+
+    "project_name": "Sterling",
+    "project_description": "Sterling",
+    "tag_name": "Sterling",
+
+    "tag_type": "System",
+    "project_type": "SAP",
+    "functional_area": "System", 
+
+    "cloudant_username": "first-response",
+    "cloudant_password": "P0weredByWatson!",
+    "cloudant_component_view_url": "https://first-response.cloudant.com/tickets/_design/iCurate/_view/ticketByCompIds?limit=50&reduce=false",
+    
+    "cloudant_pmr_answer_view_url": "https://first-response.cloudant.com/answer-key/_design/iCurate/_view/by_ticket",
+
+    "icurate_db_host": "9.32.165.152",
+    "icurate_db_port": 3306,
+    "icurate_db_user": "cogams",
+    "icurate_db_password": "cogams",
+    "icurate_db_dbname": "cogams"
+    
+}

@@ -1,0 +1,193 @@
+<project name="Cogassist-Build" default="build-all">
+
+	<target name="init">
+		<property name="build-home" location="../COG3BUILD" />
+		<property name="cogassist.common" location="../common" />
+		<property name="cogassist.qprocessor" location="../qprocessor" />
+		<property name="cogassist.kg" location="../kg-creation" />
+		<property name="cogassist.doc" location="../cognitive-ams-new-docingestion" />
+		<property name="cogassist.docdriver" location="../cognitive-ams-new-docingestion-driver" />
+		<property name="cogassist.lib" location="./lib" />
+		<property name="cogassist.logs" location="./logs" />
+                <property name="cogassist.docIngesion" location="../COG3BUILD" />
+		
+	</target>
+<presetdef name="javac">
+    <javac includeantruntime="false" />
+  </presetdef>
+
+	<target name="clean">
+		<delete dir="cogassist">
+		</delete>
+	</target>
+
+	<target name="make-dir" depends="clean, init">
+		<mkdir dir="${build-home}/cogassist" />
+		<mkdir dir="${build-home}/cogassist/home" />
+		<mkdir dir="${build-home}/cogassist/lib" />
+		<mkdir dir="${build-home}/cogassist/scripts" />
+		<mkdir dir="${build-home}/cogassist/plugins" />
+		<mkdir dir="${build-home}/cogassist/logs" />
+	</target>
+
+	<target name="common" depends="make-dir">
+
+		<!-- set the classpath with all the lib jars -->
+		<path id="classpath.cogassist.common">
+			<fileset dir="${cogassist.common}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+
+		<!-- compile source to bin -->
+		<javac srcdir="${cogassist.common}/src" destdir="${cogassist.common}/bin">
+			<classpath refid="classpath.cogassist.common" />
+		</javac>
+
+		<!-- copy all the common libs -->
+		<copy todir="${build-home}/cogassist/lib">
+			<fileset dir="${cogassist.common}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+
+		<!-- copy all the properties -->
+		<copy todir="${build-home}/cogassist/home">
+			<fileset dir="${cogassist.common}/properties">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+
+		<!-- copy all the other libs required at run time-->
+		<copy todir="${build-home}/cogassist/lib">
+			<fileset dir="${cogassist.lib}">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+
+		<!-- export the common compiled class as jar -->
+		<jar destfile="${build-home}/cogassist/lib/common.jar" basedir="${cogassist.common}/bin" />
+	</target>
+
+	<target name="kg" depends="common">
+
+		<!-- set the classpath with all the lib jars -->
+		<path id="classpath.cogassist.common">
+			<fileset dir="${cogassist.common}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+
+		<!-- compile source to bin -->
+		<javac srcdir="${cogassist.kg}/src" destdir="${cogassist.kg}/bin" classpath="${cogassist.common}/bin">
+			<classpath refid="classpath.cogassist.common" />
+		</javac>
+
+		<!-- copy all the properties -->
+		<copy todir="${build-home}/cogassist/home">
+			<fileset dir="${cogassist.kg}/properties">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<!-- export the kg compiled class as jar -->
+		<jar destfile="${build-home}/cogassist/plugins/kg-creation.jar" basedir="${cogassist.kg}/bin" />
+	</target>
+
+	<target name="doc" depends="common">
+
+		<!-- set the classpath with all the lib jars -->
+		<path id="classpath.cogassist.common">
+			<fileset dir="${cogassist.common}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		
+		<!-- compile source to bin -->
+		<javac destdir="${cogassist.doc}/bin" classpath="${cogassist.common}/bin">
+			<src path="${cogassist.doc}/src/main/java" /> 
+			<src path="${cogassist.doc}/src/main/resources" />   
+			<classpath refid="classpath.cogassist.common" />
+			
+		</javac>
+
+		<!-- copy all the doc ingestion libs -->
+		<copy todir="${build-home}/cogassist/lib">
+			<fileset dir="${cogassist.doc}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+		
+		
+		<!-- export the doc ingetsion compiled class as jar -->
+		<jar destfile="${build-home}/cogassist/plugins/doc-ingestion.jar" basedir="${cogassist.doc}/bin" />
+	</target>
+
+	<target name="docdriver" depends="doc,common">
+
+			<!-- set the classpath with all the lib jars -->
+			<path id="classpath.cogassist.common">
+				<fileset dir="${cogassist.common}/lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="C:\Users\IBM_ADMIN\.jenkins\workspace\COG3_Services\COG3BUILD\cogassist\plugins">
+									<include name="**/*.jar" />
+				</fileset>
+			</path>
+		
+
+			<!-- compile source to bin -->
+			<javac srcdir="${cogassist.docdriver}/src" destdir="${cogassist.docdriver}/bin" classpath="${cogassist.common}/bin">
+				<classpath refid="classpath.cogassist.common" />
+				<src path="${build-home}/cogassist/plugins" />   
+			</javac>
+
+			<!-- copy all the doc ingestion libs -->
+			<copy todir="${build-home}/cogassist/lib">
+				<fileset dir="${cogassist.docdriver}/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</copy>
+			
+			<!-- copy all the properties -->
+			<copy todir="${build-home}/cogassist/home">
+				<fileset dir="${cogassist.docdriver}/properties">
+					<include name="**/*" />
+				</fileset>
+			</copy>
+			<!-- export the doc ingetsion compiled class as jar -->
+			<jar destfile="${build-home}/cogassist/plugins/docdriver-ingestion.jar" basedir="${cogassist.docdriver}/bin" />
+		</target>
+	<target name="qprocessor" depends="common">
+
+		<!-- set the classpath with all the lib jars -->
+		<path id="classpath.cogassist.common">
+			<fileset dir="${cogassist.common}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+
+		<!-- compile source to bin -->
+		<javac srcdir="${cogassist.qprocessor}/src" destdir="${cogassist.qprocessor}/bin" classpath="${cogassist.common}/bin">
+			<classpath refid="classpath.cogassist.common" />
+		</javac>
+
+		<!-- copy all the doc ingestion libs -->
+		<copy todir="${build-home}/cogassist/lib">
+			<fileset dir="${cogassist.qprocessor}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+		<!-- copy all the scripts -->
+		<copy todir="${build-home}/cogassist/scripts">
+			<fileset dir="${cogassist.qprocessor}/scripts">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<!-- export the doc ingetsion compiled class as jar -->
+		<jar destfile="${build-home}/cogassist/lib/qprocessor.jar" basedir="${cogassist.qprocessor}/bin" />
+	</target>
+
+	<target name="build-all" depends="qprocessor,kg,doc,docdriver" />
+
+
+</project>

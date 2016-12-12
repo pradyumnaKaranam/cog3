@@ -1,0 +1,12 @@
+{
+    
+    "project_name": "test_delete",
+    "tag_name": "test_delete",
+    
+    "icurate_db_host": "9.32.165.152",
+    "icurate_db_port": 3306,
+    "icurate_db_user": "cogams",
+    "icurate_db_password": "cogams",
+    "icurate_db_dbname": "cogams"
+    
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
+	<classpathentry kind="lib" path="/common/lib/slf4j-api-1.6.1.jar"/>
+	<classpathentry kind="lib" path="/common/lib/slf4j-simple-1.6.1.jar"/>
+	<classpathentry kind="lib" path="/common/lib/blueprints-core-2.5.0.jar"/>
+	<classpathentry kind="lib" path="/common/lib/titan-core-0.5.4.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
