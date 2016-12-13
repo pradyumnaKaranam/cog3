@@ -106,7 +106,8 @@
 		<javac destdir="${cogassist.doc}/bin" classpath="${cogassist.common}/bin">
 			<src path="${cogassist.doc}/src/main/java" /> 
 			<src path="${cogassist.doc}/src/main/resources" />   
-			<classpath refid="classpath.cogassist.common" />
+			<classpath
+ refid="classpath.cogassist.common" />
 			
 		</javac>
 
