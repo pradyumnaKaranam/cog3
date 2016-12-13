@@ -188,7 +188,7 @@
 		<jar destfile="${build-home}/cogassist/lib/qprocessor.jar" basedir="${cogassist.qprocessor}/bin" />
 	</target>
 
-	<target name="build-all" depends="qprocessor,kg,doc,docdriver" />
+	<target name="build-all" depends="kg,doc,docdriver" />
 
 
 </project>
